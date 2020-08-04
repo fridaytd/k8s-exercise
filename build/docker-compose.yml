@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # ---------------------------
+  # API Gateway
+  # ---------------------------
+  api-gateway:
+
+
+  # ---------------------------
+  # Service One
+  # ---------------------------
+  service-one:
+
+
+  # ---------------------------
+  # Service One Database
+  # ---------------------------
+  service-one-db:
+
+
+  # ---------------------------
+  # Service Two
+  # ---------------------------
+  service-two:
+
+
+  # ---------------------------
+  # Service Two Database
+  # ---------------------------
+  service-two-db:
+
+
+  # ---------------------------
+  # Web Application
+  # ---------------------------
+  web-application:
+
+
+  # ---------------------------
+  # Messaging Queue Cluster
+  # ---------------------------
+  rabbit:
+
+
+  # ---------------------------
+  # Registration and
+  # Discovery Cluster
+  # ---------------------------
+  consul:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  mongodata:
+  
