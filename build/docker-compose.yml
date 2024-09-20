@@ -20,7 +20,7 @@ services:
         container_name: api-gateway
         environment:
             - SPRING_PROFILES_ACTIVE=docker
-        image: api-gateway
+        # image: api-gateway
 
 
     # ---------------------------
@@ -41,7 +41,7 @@ services:
         container_name: service-one
         environment:
             - SPRING_PROFILES_ACTIVE=docker
-        image: service-one
+        # image: service-one
 
 
     # ---------------------------
@@ -89,7 +89,7 @@ services:
         container_name: service-two
         environment:
             - SPRING_PROFILES_ACTIVE=docker
-        image: service-two
+        # image: service-two
 
     # ---------------------------
     # Service Two Database
@@ -130,7 +130,7 @@ services:
         container_name: web-application
         volumes:
             - dist:/usr/share/nginx/html
-        image: web-application
+        # image: web-application
 
     # ---------------------------
     # Messaging Queue Cluster
