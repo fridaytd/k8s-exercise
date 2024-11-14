@@ -10,6 +10,6 @@ export class GatewayService {
 
   getData(service: string): Observable<DataResponse> {
     console.log('Service call: ' + service );
-    return this.httpClient.get<DataResponse>('http://' + window.location.hostname + ':8080/' + service);
+    return this.httpClient.get<DataResponse>('http://' + "192.169.49.2.nip.io" + ':8080/' + service);
   }
 }
