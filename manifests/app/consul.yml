@@ -1,0 +1,84 @@
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: consul-pv
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/data/consul"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: consul-pvc
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consul
+  template:
+    metadata:
+      labels:
+        app: consul
+    spec:
+      containers:
+      - name: consul
+        image: consul:1.7.3
+        command: ["consul", "agent", "-server", "-client", "0.0.0.0", "-ui", "-bootstrap-expect=1", "-data-dir=/consul/data", "-datacenter=blr"]
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8500
+        - containerPort: 8600
+        volumeMounts:
+        - name: consul-persistent-storage
+          mountPath: /consul/data
+
+      volumes:
+      - name: consul-persistent-storage
+        persistentVolumeClaim:
+          claimName: consul-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+spec:
+  selector:
+    app: consul
+  ports:
+  - name: a
+    port: 8500
+    targetPort: 8500
+  - name: b
+    port: 8600
+    targetPort: 8600

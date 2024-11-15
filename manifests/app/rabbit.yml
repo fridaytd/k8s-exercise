@@ -1,0 +1,93 @@
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbit-secret
+type: Opaque
+data:
+  rabbit_user: ZG9ja2Vy
+  rabbit_pass: ZG9ja2Vy
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbit-configmap
+data:
+  clustered: "true"
+  ram_node: "true"
+  cluster_with: "rabbit"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      queue: rabbit
+  template:
+    metadata:
+      labels:
+        queue: rabbit
+    spec:
+      containers:
+      - name: rabbit
+        image: rabbitmq:3.8-management-alpine
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        env:
+        - name: CLUSTERED
+          valueFrom:
+            configMapKeyRef:
+              name: rabbit-configmap
+              key: clustered
+        - name: RAM_NODE
+          valueFrom:
+            configMapKeyRef:
+              name: rabbit-configmap
+              key: ram_node
+        - name: CLUSTER_WITH
+          valueFrom:
+            configMapKeyRef:
+              name: rabbit-configmap
+              key: cluster_with
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbit-secret
+              key: rabbit_user
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbit-secret
+              key: rabbit_pass
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbit
+spec:
+  selector:
+     queue: rabbit
+  ports:
+  - name: a
+    port: 5672
+    targetPort: 5672
+  - name: b
+    port: 15672
+    targetPort: 15672
+  

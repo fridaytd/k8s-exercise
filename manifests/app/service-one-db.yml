@@ -1,0 +1,118 @@
+---
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: service-one-db-pv
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/data/service-one-db/"
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: service-one-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: service-one-db-secret
+type: Opaque
+data:
+  mongodb_user: c2VydmljZS1vbmU=
+  mongodb_pass: c2VydmljZS1vbmU=
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: service-one-db-configmap
+data:
+  mongo_data_dir: /data/db
+  mongo_log_dir: /dev/null
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serviceonedb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      db: serviceonedb
+  template:
+    metadata:
+      labels:
+        db: serviceonedb
+    spec:
+      containers:
+      - name: serviceonedb
+        image: mongo:3.7
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGODB_USER
+          valueFrom:
+            secretKeyRef:
+              name: service-one-db-secret
+              key: mongodb_user
+        - name: MONGODB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: service-one-db-secret
+              key: mongodb_pass
+        - name: MONGO_DATA_DIR
+          valueFrom:
+            configMapKeyRef:
+              name: service-one-db-configmap
+              key: mongo_data_dir
+        - name: MONGO_LOG_DIR
+          valueFrom:
+            configMapKeyRef:
+              name: service-one-db-configmap
+              key: mongo_log_dir
+        volumeMounts:
+        - name: service-one-db-persistent-storage
+          mountPath: /data/db
+        
+      volumes:
+      - name: service-one-db-persistent-storage
+        persistentVolumeClaim:
+          claimName: service-one-db-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-one-db
+spec:
+  selector:
+    db: serviceonedb
+  ports:
+  - port: 27017
+    targetPort: 27017
+

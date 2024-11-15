@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-two
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-two
+  template:
+    metadata:
+      labels:
+        app: service-two
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ["sh", "-c", "until nc -z service-two-db 3306; do sleep 2; done"]
+      containers:
+      - name: service-two
+        image: 127.0.0.1:30400/service-two:latest
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "1000m"
+        ports:
+        - containerPort: 8084
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: docker
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-two
+spec:
+  selector:
+    app: service-two
+  ports:
+  - port: 8084
+    targetPort: 8084

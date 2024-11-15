@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-one
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-one
+  template:
+    metadata:
+      labels:
+        app: service-one
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ["sh", "-c", "until nc -z service-one-db 27017; do sleep 2; done"]
+      containers:
+      - name: service-one
+        image: 127.0.0.1:30400/service-one:latest
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: docker
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-one
+spec:
+  selector:
+    app: service-one
+  ports:
+  - port: 8082
+    targetPort: 8082
